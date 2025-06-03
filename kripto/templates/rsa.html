@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>RSA Şifreleme & Çözme</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(120deg, #f7971e 0%, #ffd200 100%); font-family: 'Montserrat', sans-serif; margin: 0; min-height: 100vh; }
+        .container { background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); max-width: 500px; margin: 60px auto; padding: 32px 28px; animation: fadeIn 1.2s; }
+        h1 { text-align: center; color: #2d3a4b; margin-bottom: 24px; }
+        label { font-weight: 700; color: #2d3a4b; }
+        input, textarea, button { width: 100%; margin: 10px 0 18px 0; padding: 10px; border-radius: 8px; border: 1px solid #e0e0e0; font-size: 1rem; transition: box-shadow 0.2s; }
+        input:focus, textarea:focus { box-shadow: 0 0 0 2px #ffd20044; outline: none; }
+        button { background: linear-gradient(90deg, #ffd200 0%, #f7971e 100%); color: #fff; font-weight: 700; border: none; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+        button:hover { background: linear-gradient(90deg, #f7971e 0%, #ffd200 100%); transform: scale(1.04); }
+        .result { background: #fffbe6; border-left: 4px solid #ffd200; padding: 12px; border-radius: 8px; margin-top: 10px; min-height: 32px; font-family: monospace; color: #2d3a4b; animation: slideIn 0.7s; }
+        .nav { text-align: center; margin-bottom: 18px; }
+        .nav a { color: #f7971e; text-decoration: none; font-weight: 700; margin: 0 10px; transition: color 0.2s; }
+        .nav a:hover { color: #2d3a4b; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(40px);} to { opacity: 1; transform: none; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px);} to { opacity: 1; transform: none; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav">
+        <a href="/aes">AES</a> |
+        <a href="/rsa">RSA</a> |
+        <a href="/">SHA256</a>
+    </div>
+    <h1>RSA Anahtar Üret</h1>
+    <button onclick="generateKeys()">Anahtar Çifti Oluştur</button>
+    <div class="result" id="rsa-keys"></div>
+    <h1 style="margin-top:40px;">RSA Şifreleme</h1>
+    <label>Şifrelenecek Metin</label>
+    <textarea id="rsa-plain" placeholder="Metin giriniz..."></textarea>
+    <label>Public Key</label>
+    <textarea id="rsa-pub" placeholder="Public Key"></textarea>
+    <button onclick="rsaEncrypt()">Şifrele</button>
+    <div class="result" id="rsa-encrypt-result"></div>
+    <h1 style="margin-top:40px;">RSA Şifre Çözme</h1>
+    <label>Şifreli Metin (Base64)</label>
+    <textarea id="rsa-ct" placeholder="Şifreli Metin (Base64)"></textarea>
+    <label>Private Key</label>
+    <textarea id="rsa-priv" placeholder="Private Key"></textarea>
+    <button onclick="rsaDecrypt()">Çöz</button>
+    <div class="result" id="rsa-decrypt-result"></div>
+</div>
+<script>
+function generateKeys() {
+    fetch('/rsa/generate', { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+        if (d.public_key && d.private_key) {
+            document.getElementById('rsa-keys').innerText = 'Public Key:\n' + d.public_key + '\n\nPrivate Key:\n' + d.private_key;
+        } else {
+            document.getElementById('rsa-keys').innerText = d.error;
+        }
+    });
+}
+function rsaEncrypt() {
+    fetch('/rsa/encrypt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            data: document.getElementById('rsa-plain').value,
+            public_key: document.getElementById('rsa-pub').value
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.ciphertext) {
+            document.getElementById('rsa-encrypt-result').innerText = d.ciphertext;
+        } else {
+            document.getElementById('rsa-encrypt-result').innerText = d.error;
+        }
+    });
+}
+function rsaDecrypt() {
+    fetch('/rsa/decrypt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            ciphertext: document.getElementById('rsa-ct').value,
+            private_key: document.getElementById('rsa-priv').value
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.plaintext) {
+            document.getElementById('rsa-decrypt-result').innerText = d.plaintext;
+        } else {
+            document.getElementById('rsa-decrypt-result').innerText = d.error;
+        }
+    });
+}
+</script>
+</body>
+</html> 

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>SHA256 Özet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(120deg, #f7971e 0%, #89f7fe 100%); font-family: 'Montserrat', sans-serif; margin: 0; min-height: 100vh; }
+        .container { background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); max-width: 500px; margin: 60px auto; padding: 32px 28px; animation: fadeIn 1.2s; }
+        h1 { text-align: center; color: #2d3a4b; margin-bottom: 24px; }
+        label { font-weight: 700; color: #2d3a4b; }
+        input, textarea, button { width: 100%; margin: 10px 0 18px 0; padding: 10px; border-radius: 8px; border: 1px solid #e0e0e0; font-size: 1rem; transition: box-shadow 0.2s; }
+        input:focus, textarea:focus { box-shadow: 0 0 0 2px #89f7fe44; outline: none; }
+        button { background: linear-gradient(90deg, #f7971e 0%, #89f7fe 100%); color: #fff; font-weight: 700; border: none; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+        button:hover { background: linear-gradient(90deg, #89f7fe 0%, #f7971e 100%); transform: scale(1.04); }
+        .result { background: #f6faff; border-left: 4px solid #f7971e; padding: 12px; border-radius: 8px; margin-top: 10px; min-height: 32px; font-family: monospace; color: #2d3a4b; animation: slideIn 0.7s; }
+        .nav { text-align: center; margin-bottom: 18px; }
+        .nav a { color: #f7971e; text-decoration: none; font-weight: 700; margin: 0 10px; transition: color 0.2s; }
+        .nav a:hover { color: #2d3a4b; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(40px);} to { opacity: 1; transform: none; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px);} to { opacity: 1; transform: none; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav">
+        <a href="/aes">AES</a> |
+        <a href="/rsa">RSA</a> |
+        <a href="/">SHA256</a>
+    </div>
+    <h1>SHA256 Özet</h1>
+    <label>Özeti alınacak metin</label>
+    <textarea id="sha256-data" placeholder="Metin giriniz..."></textarea>
+    <button onclick="sha256Hash()">SHA256 Hesapla</button>
+    <div class="result" id="sha256-result"></div>
+    <hr style="margin:32px 0;">
+    <label>Dosya seç ve özetini al</label>
+    <input type="file" id="sha256-file" />
+    <button onclick="sha256File()">Dosya SHA256 Hesapla</button>
+    <div class="result" id="sha256-file-result"></div>
+</div>
+<script>
+function sha256Hash() {
+    fetch('/sha256', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            data: document.getElementById('sha256-data').value
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.sha256) {
+            document.getElementById('sha256-result').innerText = d.sha256;
+        } else {
+            document.getElementById('sha256-result').innerText = d.error;
+        }
+    });
+}
+
+function sha256File() {
+    const fileInput = document.getElementById('sha256-file');
+    if (!fileInput.files.length) {
+        document.getElementById('sha256-file-result').innerText = 'Lütfen bir dosya seçin.';
+        return;
+    }
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    fetch('/sha256/file', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.sha256) {
+            document.getElementById('sha256-file-result').innerText = d.sha256;
+        } else {
+            document.getElementById('sha256-file-result').innerText = d.error;
+        }
+    });
+}
+</script>
+</body>
+</html> 

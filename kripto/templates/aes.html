@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>AES Şifreleme & Çözme</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%); font-family: 'Montserrat', sans-serif; margin: 0; min-height: 100vh; }
+        .container { background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); max-width: 500px; margin: 60px auto; padding: 32px 28px; animation: fadeIn 1.2s; }
+        h1 { text-align: center; color: #2d3a4b; margin-bottom: 24px; }
+        label { font-weight: 700; color: #2d3a4b; }
+        input, textarea, button { width: 100%; margin: 10px 0 18px 0; padding: 10px; border-radius: 8px; border: 1px solid #e0e0e0; font-size: 1rem; transition: box-shadow 0.2s; }
+        input:focus, textarea:focus { box-shadow: 0 0 0 2px #66a6ff44; outline: none; }
+        button { background: linear-gradient(90deg, #66a6ff 0%, #89f7fe 100%); color: #fff; font-weight: 700; border: none; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+        button:hover { background: linear-gradient(90deg, #89f7fe 0%, #66a6ff 100%); transform: scale(1.04); }
+        .result { background: #f6faff; border-left: 4px solid #66a6ff; padding: 12px; border-radius: 8px; margin-top: 10px; min-height: 32px; font-family: monospace; color: #2d3a4b; animation: slideIn 0.7s; }
+        .nav { text-align: center; margin-bottom: 18px; }
+        .nav a { color: #66a6ff; text-decoration: none; font-weight: 700; margin: 0 10px; transition: color 0.2s; }
+        .nav a:hover { color: #2d3a4b; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(40px);} to { opacity: 1; transform: none; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px);} to { opacity: 1; transform: none; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav">
+        <a href="/aes">AES</a> |
+        <a href="/rsa">RSA</a> |
+        <a href="/">SHA256</a>
+    </div>
+    <h1>AES Şifreleme</h1>
+    <label>Şifrelenecek Metin</label>
+    <textarea id="aes-plain" placeholder="Metin giriniz..."></textarea>
+    <label>Anahtar (Key)</label>
+    <input id="aes-key" type="text" placeholder="Anahtar giriniz...">
+    <button onclick="aesEncrypt()">Şifrele</button>
+    <div class="result" id="aes-encrypt-result"></div>
+    <h1 style="margin-top:40px;">AES Şifre Çözme</h1>
+    <label>IV (Base64)</label>
+    <input id="aes-iv" type="text" placeholder="IV (Base64)">
+    <label>Şifreli Metin (Base64)</label>
+    <input id="aes-ct" type="text" placeholder="Şifreli Metin (Base64)">
+    <label>Anahtar (Key)</label>
+    <input id="aes-key2" type="text" placeholder="Anahtar giriniz...">
+    <button onclick="aesDecrypt()">Çöz</button>
+    <div class="result" id="aes-decrypt-result"></div>
+</div>
+<script>
+function aesEncrypt() {
+    fetch('/aes/encrypt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            data: document.getElementById('aes-plain').value,
+            key: document.getElementById('aes-key').value
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.ciphertext) {
+            document.getElementById('aes-encrypt-result').innerText = 'IV: ' + d.iv + '\nŞifreli: ' + d.ciphertext;
+        } else {
+            document.getElementById('aes-encrypt-result').innerText = d.error;
+        }
+    });
+}
+function aesDecrypt() {
+    fetch('/aes/decrypt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            ciphertext: document.getElementById('aes-ct').value,
+            key: document.getElementById('aes-key2').value,
+            iv: document.getElementById('aes-iv').value
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.plaintext) {
+            document.getElementById('aes-decrypt-result').innerText = d.plaintext;
+        } else {
+            document.getElementById('aes-decrypt-result').innerText = d.error;
+        }
+    });
+}
+</script>
+</body>
+</html> 
